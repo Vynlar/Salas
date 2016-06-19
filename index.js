@@ -3,6 +3,7 @@ const Room = require("./room");
 const _ = require("lodash");
 const io = require("socket.io")();
 const winston = require('winston');
+winston.level = "debug";
 
 module.exports = class GameManager {
   constructor(port) {
