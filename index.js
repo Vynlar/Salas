@@ -10,6 +10,7 @@ module.exports = class GameManager {
     this.roles = [];
     this.events = {};
     this.defaultRole = "player";
+    this.timeout = 90000;
   }
 
   addRoom(room) {
@@ -46,8 +47,15 @@ module.exports = class GameManager {
       //setup standard socket events
       socket.on("join", ({roomId, username}) => {
         room = this.getRoom(roomId);
-        player = new Player(username, this.defaultRole, socket);
-        room.addPlayer(player);
+        //if the player already is in the room, set it to connected
+        if(room.getPlayer(username)) {
+          player.disconnected = false;
+          return;
+        } else {
+          //otherwise, make a new player and add it to the room
+          player = new Player(username, this.defaultRole, socket);
+          room.addPlayer(player);
+        }
         socket.emit("joined", {message: `Successfully joined ${roomId} with role ${this.defaultRole} and username ${username}`})
       });
       //setup other socket events
@@ -56,7 +64,19 @@ module.exports = class GameManager {
           callback({data, room, player});
         });
       });
+
+      //handle disconnects
+      io.on("disconnect", function() {
+        player.disconnected = true;
+        setTimeout(() => {
+          //if the player is still disconnected after the timeout, remove it from the room
+          if(player.disconnected) {
+            room.removePlayer(player.username);
+          }
+        }, this.timeout);
+      });
     });
+
   }
 
   start(server) {
