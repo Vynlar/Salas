@@ -1,8 +1,12 @@
 const uuid = require('node-uuid');
+const _ = require("lodash");
 
 module.exports = class Room {
-  constructor() {
-    this.id = uuid.v1();
+  constructor(roomId) {
+    if(_.isNil(roomId))
+      this.id = uuid.v1();
+    else
+      this.id = roomId;
     this.players = [];
   }
 
@@ -21,5 +25,19 @@ module.exports = class Room {
       return player.username === username;
     });
     return player[0];
+  }
+
+  getPlayersByRole(role) {
+    return this.players.filter((player) => {
+      if(Array.isArray(role))
+        return role.includes(player.role);
+      return player.role === role;
+    });
+  }
+
+  emitToRole(role, name, data) {
+    this.getPlayersByRole(role).forEach((player) => {
+      player.socket.emit(name, data);
+    });
   }
 }

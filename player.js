@@ -5,5 +5,6 @@ module.exports = class Player {
     this.username = username;
     this.role = role;
     this.id = uuid.v1();
+    this.socket = socket;
   }
 }

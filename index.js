@@ -9,6 +9,7 @@ module.exports = class GameManager {
     this.rooms = [];
     this.roles = [];
     this.events = {};
+    this.defaultRole = "player";
   }
 
   addRoom(room) {
@@ -16,24 +17,18 @@ module.exports = class GameManager {
   }
 
   getRoom(id) {
-    //if no id is provided, make a new room
-    if(_.isNil(id)) {
-      const newRoom = new Room();
+    const matches = this.rooms.filter((room) => {
+      return room.id == id;
+    });
+    if(matches.length > 1) {
+      throw new Error(`Two rooms have the same id: ${id}`);
+    } else if(matches.length === 0) {
+      //if no room is found, make a new one
+      const newRoom = new Room(id);
       this.rooms.push(newRoom);
       return newRoom;
-    } else {
-      //if an id is provided, then get it
-      const room = this.rooms.filter((room) => {
-        return room.id = id;
-      });
-      if(room.length > 1) {
-        throw new Error(`Two rooms have the same id: $(id)`);
-      }
-      if(room.length === 0) {
-        throw new Error(`Invalid id $(id)`);
-      }
-      return room[0];
     }
+    return matches[0];
   }
 
   on(name, callback) {
@@ -46,11 +41,16 @@ module.exports = class GameManager {
 
   setupSocketIo() {
     io.on("connection", (socket) => {
-      Object.keys(this.events).forEach((event) => {
-        _.forOwn(this.events, (name, callback) => {
-          socket.on(name, (data) => {
-            callback(data);
-          });
+      //setup standard socket events
+      socket.on("join", ({roomId, username}) => {
+        const room = this.getRoom(roomId);
+        room.addPlayer(new Player(username, this.defaultRole, socket));
+        socket.emit("joined", {message: `Successfully joined ${roomId} with role ${this.defaultRole} and username ${username}`})
+      });
+      //setup other socket events
+      _.forOwn(this.events, (callback, name) => {
+        socket.on(name, (data) => {
+          callback(socket, data);
         });
       });
     });
