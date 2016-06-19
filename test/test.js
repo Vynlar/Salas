@@ -152,12 +152,13 @@ describe("Sockets", () => {
     });
   });
 
-  it("should send an event", () => {
+  it("should send an event", (done) => {
     const requestData = "this is some data";
     //server
-    gm.on("message", (socket, data) => {
+    gm.on("message", ({data}) => {
       data.should.be.equal(requestData);
       socket.disconnect();
+      done();
     });
     //client
     const socket = ioClient.connect("http://localhost:7070");

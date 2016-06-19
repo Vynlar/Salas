@@ -41,16 +41,19 @@ module.exports = class GameManager {
 
   setupSocketIo() {
     io.on("connection", (socket) => {
+      let room;
+      let player;
       //setup standard socket events
       socket.on("join", ({roomId, username}) => {
-        const room = this.getRoom(roomId);
-        room.addPlayer(new Player(username, this.defaultRole, socket));
+        room = this.getRoom(roomId);
+        player = new Player(username, this.defaultRole, socket);
+        room.addPlayer(player);
         socket.emit("joined", {message: `Successfully joined ${roomId} with role ${this.defaultRole} and username ${username}`})
       });
       //setup other socket events
       _.forOwn(this.events, (callback, name) => {
         socket.on(name, (data) => {
-          callback(socket, data);
+          callback({data, room, player});
         });
       });
     });
