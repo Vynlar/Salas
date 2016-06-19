@@ -2,6 +2,7 @@ const Player = require("./player");
 const Room = require("./room");
 const _ = require("lodash");
 const io = require("socket.io")();
+const winston = require('winston');
 
 module.exports = class GameManager {
   constructor(port) {
@@ -47,17 +48,21 @@ module.exports = class GameManager {
       //setup standard socket events
       socket.on("join", ({roomId, username}) => {
         room = this.getRoom(roomId);
+        winston.debug(`Player joining '${roomId}' with username '${username}'`)
         //if the player already is in the room, set it to connected
         if(room.getPlayer(username)) {
+          winston.debug('Player found in room.')
           player = room.getPlayer(username);
           player.disconnected = false;
           return;
         } else {
           //otherwise, make a new player and add it to the room
+          winston.debug('New player being created.')
           player = new Player(username, this.defaultRole, socket);
           room.addPlayer(player);
         }
-        socket.emit("joined", {message: `Successfully joined ${roomId} with role ${this.defaultRole} and username ${username}`})
+        socket.emit("joined", {message:
+          `Successfully joined ${roomId} with role ${this.defaultRole} and username ${username}`})
       });
       //setup other socket events
       _.forOwn(this.events, (callback, name) => {
