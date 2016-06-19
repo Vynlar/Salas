@@ -56,8 +56,11 @@ module.exports = class GameManager {
     });
   }
 
-  start() {
+  start(server) {
     this.setupSocketIo();
-    io.listen(this.port);
+    if(server)
+      io.listen(server);
+    else
+      io.listen(this.port);
   }
 }
