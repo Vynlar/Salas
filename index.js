@@ -49,6 +49,7 @@ module.exports = class GameManager {
         room = this.getRoom(roomId);
         //if the player already is in the room, set it to connected
         if(room.getPlayer(username)) {
+          player = room.getPlayer(username);
           player.disconnected = false;
           return;
         } else {
@@ -67,6 +68,7 @@ module.exports = class GameManager {
 
       //handle disconnects
       io.on("disconnect", function() {
+        if(!player) return;
         player.disconnected = true;
         setTimeout(() => {
           //if the player is still disconnected after the timeout, remove it from the room
