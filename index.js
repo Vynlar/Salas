@@ -35,7 +35,11 @@ module.exports = class GameManager {
   }
 
   on(name, callback) {
-    this.events[name] = callback;
+    if(name === "join") {
+      this.joinCallback = callback;
+    } else {
+      this.events[name] = callback;
+    }
   }
 
   removeEvent(name) {
@@ -54,16 +58,20 @@ module.exports = class GameManager {
         if(room.getPlayer(username)) {
           winston.debug('Player found in room.')
           player = room.getPlayer(username);
+          player.socket = socket;
           player.disconnected = false;
-          return;
         } else {
           //otherwise, make a new player and add it to the room
           winston.debug('New player being created.')
           player = new Player(username, this.defaultRole, socket);
           room.addPlayer(player);
         }
+        //call the join callback
+        if(this.joinCallback)
+          this.joinCallback({room, player});
+
         socket.emit("joined", {message:
-          `Successfully joined ${roomId} with role ${this.defaultRole} and username ${username}`})
+          `Successfully joined ${roomId} with role ${this.defaultRole} and username ${username}`});
       });
       //setup other socket events
       _.forOwn(this.events, (callback, name) => {

@@ -1,12 +1,12 @@
 {
   "name": "salas",
-  "version": "1.0.0",
-  "description": "",
+  "version": "1.0.4",
+  "description": "A small socket.io framework for creating room-based applications.",
   "main": "index.js",
   "scripts": {
-    "test": "./node_modules/.bin/eslint . && mocha"
+    "test": "./node_modules/.bin/eslint . && mocha -c"
   },
-  "author": "",
+  "author": "Vynlar",
   "license": "ISC",
   "dependencies": {
     "express": "^4.13.4",
